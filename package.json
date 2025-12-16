@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",
+    "build": "bunx prisma generate",
     "start": "bun src/index.ts",
     "lint": "bunx prisma validate",
     "prisma:generate": "bunx prisma generate",
