@@ -1,0 +1,290 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SkillLevel {
+  BEGINNER
+  MIDDLE
+  PROFESSIONAL
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Locale {
+  EN
+  ID
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  name      String
+  email     String     @unique
+  password  String
+  bio       String?
+  profile   String?
+  posts     BlogPost[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model WebConfig {
+  id              Int      @id @default(autoincrement())
+  logo            String?
+  favicon         String?
+  copyright       String?
+  metaDescription String?  @map("meta_description")
+  metaTitle       String?  @map("meta_title")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("web_config")
+}
+
+model Hero {
+  id           Int               @id @default(autoincrement())
+  translations HeroTranslation[]
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  @@map("hero")
+}
+
+model AboutMe {
+  id           Int                @id @default(autoincrement())
+  profile      String?
+  translations AboutTranslation[]
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  @@map("about_me")
+}
+
+model Experience {
+  id           Int                     @id @default(autoincrement())
+  institution  String
+  years        String
+  sortOrder    Int                     @default(0) @map("order")
+  translations ExperienceTranslation[]
+  createdAt    DateTime                @default(now()) @map("created_at")
+  updatedAt    DateTime                @updatedAt @map("updated_at")
+
+  @@map("experience")
+}
+
+model Skill {
+  id        Int        @id @default(autoincrement())
+  title     String
+  image     String?
+  level     SkillLevel @map("skill")
+  sortOrder Int        @default(0) @map("order")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@map("skills")
+}
+
+model Certificate {
+  id           Int                    @id @default(autoincrement())
+  file         String
+  previewImg   String?                @map("preview_img")
+  issuedBy     String?                @map("issued_by")
+  issuedOn     DateTime?              @map("issued_on")
+  sortOrder    Int                    @default(0) @map("order")
+  translations CertificateTranslation[]
+  createdAt    DateTime               @default(now()) @map("created_at")
+  updatedAt    DateTime               @updatedAt @map("updated_at")
+
+  @@map("certificate")
+}
+
+model Project {
+  id           Int                  @id @default(autoincrement())
+  slug         String               @unique
+  sortOrder    Int                  @default(0) @map("order")
+  images       ProjectImage[]
+  translations ProjectTranslation[]
+  createdAt    DateTime             @default(now()) @map("created_at")
+  updatedAt    DateTime             @updatedAt @map("updated_at")
+
+  @@map("project")
+}
+
+model ProjectImage {
+  id        Int      @id @default(autoincrement())
+  url       String
+  alt       String?
+  sortOrder Int      @default(0) @map("order")
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId Int      @map("project_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("project_image")
+}
+
+model SocialMedia {
+  id        Int      @id @default(autoincrement())
+  logo      String?
+  link      String
+  title     String
+  sortOrder Int      @default(0) @map("order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("social_media")
+}
+
+model ContactForm {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String
+  subject     String?
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("contact_form")
+}
+
+model ContactInformation {
+  id          Int      @id @default(autoincrement())
+  name        String?
+  email       String?
+  phoneNumber String?  @map("phone_number")
+  location    String?
+  cv          String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("contact_information")
+}
+
+model BlogCategory {
+  id           Int                       @id @default(autoincrement())
+  slug         String                    @unique
+  sortOrder    Int                       @default(0) @map("order")
+  posts        BlogPost[]
+  translations BlogCategoryTranslation[]
+  createdAt    DateTime                  @default(now()) @map("created_at")
+  updatedAt    DateTime                  @updatedAt @map("updated_at")
+
+  @@map("blog_category")
+}
+
+model BlogPost {
+  id              Int                      @id @default(autoincrement())
+  blogCategory    BlogCategory             @relation(fields: [blogCategoryId], references: [id], onDelete: Cascade)
+  blogCategoryId  Int                      @map("blog_category_id")
+  author          User                     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId        Int                      @map("author_id")
+  slug            String                   @unique
+  featuredImage   String?                  @map("featured_image")
+  status          PublishStatus            @default(DRAFT)
+  publishedAt     DateTime?                @map("published_at")
+  createdBy       String?                  @map("created_by")
+  translations    BlogPostTranslation[]
+  createdAt       DateTime                 @default(now()) @map("created_at")
+  updatedAt       DateTime                 @updatedAt @map("updated_at")
+
+  @@map("blog_content")
+}
+
+model HeroTranslation {
+  id        Int      @id @default(autoincrement())
+  hero      Hero     @relation(fields: [heroId], references: [id], onDelete: Cascade)
+  heroId    Int      @map("hero_id")
+  locale    Locale
+  title     String
+  subtitle  String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([heroId, locale])
+  @@map("hero_translation")
+}
+
+model AboutTranslation {
+  id        Int      @id @default(autoincrement())
+  about     AboutMe  @relation(fields: [aboutId], references: [id], onDelete: Cascade)
+  aboutId   Int      @map("about_id")
+  locale    Locale
+  title     String
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([aboutId, locale])
+  @@map("about_translation")
+}
+
+model ExperienceTranslation {
+  id           Int         @id @default(autoincrement())
+  experience   Experience  @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  experienceId Int         @map("experience_id")
+  locale       Locale
+  title        String
+  description  String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@unique([experienceId, locale])
+  @@map("experience_translation")
+}
+
+model CertificateTranslation {
+  id            Int          @id @default(autoincrement())
+  certificate   Certificate  @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  certificateId Int          @map("certificate_id")
+  locale        Locale
+  title         String
+  description   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([certificateId, locale])
+  @@map("certificate_translation")
+}
+
+model ProjectTranslation {
+  id          Int      @id @default(autoincrement())
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   Int      @map("project_id")
+  locale      Locale
+  title       String
+  subtitle    String?
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([projectId, locale])
+  @@map("project_translation")
+}
+
+model BlogCategoryTranslation {
+  id             Int          @id @default(autoincrement())
+  blogCategory   BlogCategory @relation(fields: [blogCategoryId], references: [id], onDelete: Cascade)
+  blogCategoryId Int          @map("blog_category_id")
+  locale         Locale
+  title          String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@unique([blogCategoryId, locale])
+  @@map("blog_category_translation")
+}
+
+model BlogPostTranslation {
+  id              Int       @id @default(autoincrement())
+  blogPost        BlogPost  @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  blogPostId      Int       @map("blog_post_id")
+  locale          Locale
+  title           String
+  content         String
+  metaTitle       String?   @map("meta_title")
+  metaDescription String?   @map("meta_description")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([blogPostId, locale])
+  @@map("blog_post_translation")
+}

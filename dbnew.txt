@@ -1,0 +1,83 @@
+1. web_config (Singleton)
+- logo
+- favicon
+- copyright
+- meta_description
+- meta_title
+
+2. hero (Singleton)
+- title (2 bahasa)
+- subtitle (2 bahasa)
+
+3. about me (Singleton)
+- title (2 bahasa)
+- content (2 bahasa)
+- profile
+
+4. Experience
+- institution
+- title (2 bahasa)
+- years
+- description (2 bahasa)
+- order
+
+5. skills
+- title
+- image
+- skill (Enum: beginner, middle, professional)
+- order
+
+6. certificate
+- title (2 bahasa)
+- description (2 bahasa)
+- file
+- preview_img
+- issued_by
+- issued_on
+- order
+
+6. project
+- title (2 bahasa)
+- slug
+- subtitle (2 bahasa)
+- description (2 bahasa)
+- order
+- image (multiple)
+
+8. social_media
+- logo
+- link
+- title
+- order
+
+9. contact_form
+- name
+- email
+- subject
+- description
+
+10. contact_information (Singleton)
+- name
+- email
+- phone_number
+- location
+- cv
+
+11. blog_category
+- title (2 bahasa)
+- slug
+- order
+
+12. blog_content
+- blog_category_id (fk > blog_category)
+- author_id (fk > user)
+- title (2 bahasa)
+- slug
+- content (2 bahasa)
+- featured_image
+- status (Enum: draft, published, archived)
+- published_at
+- created_by (karna nanti akan ada bot khusus buat blog)
+- meta_title
+- meta_description
+
