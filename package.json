@@ -4,14 +4,16 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",
-    "build": "bunx prisma generate",
-    "start": "bun src/index.ts",
-    "heroku-postbuild": "bunx prisma generate",
-    "lint": "bunx prisma validate",
+    "dev:node": "node --watch --loader tsx src/index.ts",
+    "build": "npx prisma generate",
+    "start": "node --loader tsx src/index.ts",
+    "start:bun": "bun src/index.ts",
+    "heroku-postbuild": "npx prisma generate",
+    "lint": "npx prisma validate",
     "prisma:generate": "bunx prisma generate",
     "prisma:push": "bunx prisma db push",
     "prisma:studio": "bunx prisma studio",
-    "prisma:seed": "bunx prisma db seed"
+    "prisma:seed": "bunx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.948.0",
@@ -42,6 +44,6 @@
     "typescript": "^5.4.2"
   },
   "prisma": {
-    "seed": "bunx tsx prisma/seed.ts"
+    "seed": "npx tsx prisma/seed.ts"
   }
 }
