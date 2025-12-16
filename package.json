@@ -6,7 +6,7 @@
     "dev": "bun --watch src/index.ts",
     "dev:node": "node --watch --loader tsx src/index.ts",
     "build": "npx prisma generate",
-    "start": "node --loader tsx src/index.ts",
+    "start": "node --import tsx src/index.ts",
     "start:bun": "bun src/index.ts",
     "heroku-postbuild": "npx prisma generate",
     "lint": "npx prisma validate",
