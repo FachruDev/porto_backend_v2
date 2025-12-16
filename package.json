@@ -6,6 +6,7 @@
     "dev": "bun --watch src/index.ts",
     "build": "bunx prisma generate",
     "start": "bun src/index.ts",
+    "heroku-postbuild": "bunx prisma generate",
     "lint": "bunx prisma validate",
     "prisma:generate": "bunx prisma generate",
     "prisma:push": "bunx prisma db push",

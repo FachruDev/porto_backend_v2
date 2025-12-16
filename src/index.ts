@@ -3,7 +3,7 @@ import { getEnv } from "./config/env";
 import prisma from "./config/prisma";
 
 const env = getEnv();
-const PORT = env.PORT ?? 4000;
+const PORT = process.env.PORT ?? env.PORT ?? 4000;
 
 const app = createApp();
 
