@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
-    "postinstall": "npx prisma generate",
     "lint": "bunx prisma validate",
     "prisma:generate": "bunx prisma generate",
     "prisma:push": "bunx prisma db push",
