@@ -8,5 +8,10 @@ const aboutTranslations = buildTranslations({
 
 export const aboutSchema = z.object({
   profile: z.string().optional(),
+  profileFile: z
+    .string()
+    .regex(/^data:(.+);base64,(.*)$/)
+    .max(5_000_000)
+    .optional(),
   translations: aboutTranslations,
 });

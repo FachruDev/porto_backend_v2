@@ -12,7 +12,7 @@ const prisma = new PrismaClient({
 const seedUserEmail = "fachru2006@gmail.com";
 
 async function seedUser() {
-  const password = await bcrypt.hash("password123", 10);
+  const password = await bcrypt.hash("password", 8);
 
   await prisma.user.upsert({
     where: { email: seedUserEmail },
