@@ -71,6 +71,17 @@ export const deleteObject = async (key: string) => {
   );
 };
 
+export const resolveKeyFromUrl = (url?: string | null) => {
+  if (!url) return null;
+  if (env.R2_PUBLIC_BASE_URL && url.startsWith(env.R2_PUBLIC_BASE_URL)) {
+    return url.replace(env.R2_PUBLIC_BASE_URL, "").replace(/^\/+/, "");
+  }
+  if (env.S3 && url.startsWith(env.S3)) {
+    return url.replace(env.S3, "").replace(/^\/+/, "");
+  }
+  return null;
+};
+
 const buildPublicUrl = (key: string) => {
   if (env.R2_PUBLIC_BASE_URL) {
     return `${env.R2_PUBLIC_BASE_URL.replace(/\/$/, "")}/${key}`;

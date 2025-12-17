@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import prisma from "../../config/prisma";
 import { HttpError } from "../../lib/httpError";
 import { cleanSlug, normalizeTranslations, toId } from "./helpers";
+import { ensureFile, replaceFile } from "../../lib/upload";
 
 export const listProjects = async (_req: Request, res: Response) => {
   const projects = await prisma.project.findMany({
@@ -129,4 +130,61 @@ export const deleteProjectImage = async (req: Request, res: Response) => {
 
   await prisma.projectImage.delete({ where: { id: imageId } });
   res.status(204).send();
+};
+
+export const uploadProjectImages = async (req: Request, res: Response) => {
+  const projectId = toId(req.params.id);
+  const files = (req as Request & { files?: Express.Multer.File[] }).files || [];
+  if (!files.length) {
+    throw new HttpError(400, "At least one image is required");
+  }
+
+  const created = [];
+  for (const file of files) {
+    ensureFile(file, { allowMime: /^image\//, field: "image" });
+    const url = await replaceFile({
+      file,
+      keyPrefix: `projects/${projectId}/image`,
+      oldUrl: undefined,
+    });
+    const image = await prisma.projectImage.create({
+      data: {
+        projectId,
+        url,
+        alt: file.originalname,
+        sortOrder: 0,
+      },
+    });
+    created.push(image);
+  }
+
+  res.status(201).json(created);
+};
+
+export const replaceProjectImage = async (req: Request, res: Response) => {
+  const projectId = toId(req.params.projectId);
+  const imageId = toId(req.params.imageId);
+  const file = (req as Request & { file?: Express.Multer.File }).file;
+  ensureFile(file, { allowMime: /^image\//, field: "image" });
+
+  const existing = await prisma.projectImage.findFirst({
+    where: { id: imageId, projectId },
+  });
+
+  if (!existing) {
+    throw new HttpError(404, "Project image not found");
+  }
+
+  const url = await replaceFile({
+    file: file!,
+    keyPrefix: `projects/${projectId}/image`,
+    oldUrl: existing.url,
+  });
+
+  const updated = await prisma.projectImage.update({
+    where: { id: imageId },
+    data: { url, alt: file?.originalname },
+  });
+
+  res.json(updated);
 };

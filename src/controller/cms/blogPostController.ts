@@ -4,6 +4,7 @@ import { PublishStatus } from "@prisma/client";
 import prisma from "../../config/prisma";
 import { HttpError } from "../../lib/httpError";
 import { cleanSlug, computePublishedAt, normalizeTranslations, toId } from "./helpers";
+import { ensureFile, replaceFile, uploadMulterFile } from "../../lib/upload";
 
 export const listBlogPosts = async (_req: Request, res: Response) => {
   const posts = await prisma.blogPost.findMany({
@@ -175,4 +176,37 @@ export const updateBlogPost = async (req: Request, res: Response) => {
 export const deleteBlogPost = async (req: Request, res: Response) => {
   await prisma.blogPost.delete({ where: { id: toId(req.params.id) } });
   res.status(204).send();
+};
+
+export const uploadBlogFeaturedImage = async (req: Request, res: Response) => {
+  const file = (req as Request & { file?: Express.Multer.File }).file;
+  ensureFile(file, { allowMime: /^image\//, field: "featured_image" });
+
+  const id = toId(req.params.id);
+  const existing = await prisma.blogPost.findUnique({ where: { id } });
+  const url = await replaceFile({
+    file: file!,
+    keyPrefix: `blog/${id}/featured`,
+    oldUrl: existing?.featuredImage,
+  });
+
+  const post = await prisma.blogPost.update({
+    where: { id },
+    data: { featuredImage: url },
+    include: {
+      blogCategory: true,
+      author: true,
+      translations: true,
+    },
+  });
+
+  res.json(post);
+};
+
+export const uploadBlogContentImage = async (req: Request, res: Response) => {
+  const file = (req as Request & { file?: Express.Multer.File }).file;
+  ensureFile(file, { allowMime: /^image\//, field: "image" });
+
+  const url = await uploadMulterFile(file!, `blog/content/${Date.now()}`);
+  res.json({ url });
 };

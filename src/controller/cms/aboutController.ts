@@ -1,9 +1,9 @@
 import type { Locale } from "@prisma/client";
 import type { Request, Response } from "express";
 import prisma from "../../config/prisma";
-import { uploadObject } from "../../config/storage";
 import { HttpError } from "../../lib/httpError";
 import { normalizeTranslations } from "./helpers";
+import { replaceBuffer, replaceFile } from "../../lib/upload";
 
 export const getAbout = async (_req: Request, res: Response) => {
   const about = await prisma.aboutMe.findFirst({
@@ -33,12 +33,13 @@ export const upsertAbout = async (req: Request, res: Response) => {
 
   const parsedFile = parseDataUrl(payload.profileFile);
   if (parsedFile) {
-    const uploaded = await uploadObject({
-      key: `about/profile-${Date.now()}`,
-      body: parsedFile.buffer,
+    profileUrl = await replaceBuffer({
+      buffer: parsedFile.buffer,
       contentType: parsedFile.contentType,
+      keyPrefix: "about/profile",
+      oldUrl: existing?.profile,
+      originalname: "profile-dataurl",
     });
-    profileUrl = uploaded.url;
   }
 
   const data = existing
@@ -73,24 +74,23 @@ export const uploadAboutProfile = async (req: Request, res: Response) => {
     throw new HttpError(400, "Only image uploads are allowed");
   }
 
-  const uploaded = await uploadObject({
-    body: file.buffer,
-    contentType: file.mimetype,
-    key: `about/profile-${Date.now()}-${file.originalname}`,
-  });
-
   const existing = await prisma.aboutMe.findFirst();
+  const newUrl = await replaceFile({
+    file,
+    keyPrefix: "about/profile",
+    oldUrl: existing?.profile,
+  });
 
   const about = existing
     ? await prisma.aboutMe.update({
         where: { id: existing.id },
-        data: { profile: uploaded.url },
+        data: { profile: newUrl },
         include: { translations: true },
       })
     : await prisma.aboutMe.create({
-        data: { profile: uploaded.url },
+        data: { profile: newUrl },
         include: { translations: true },
       });
 
-  res.json({ url: uploaded.url, about });
+  res.json({ url: newUrl, about });
 };
