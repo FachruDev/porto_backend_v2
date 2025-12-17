@@ -28,7 +28,12 @@ export const s3Client = hasCredentials
 
 const ensureClient = () => {
   if (!s3Client || !bucket) {
-    throw new Error("R2 storage is not configured.");
+    const missing: string[] = [];
+    if (!bucket) missing.push("R2_BUCKET or bucket in S3 url");
+    if (!env.R2_ACCESS_KEY_ID) missing.push("R2_ACCESS_KEY_ID");
+    if (!env.R2_SECRET_ACCESS_KEY) missing.push("R2_SECRET_ACCESS_KEY");
+    if (!env.S3) missing.push("S3 (endpoint with bucket)");
+    throw new Error(`R2 storage is not configured. Missing: ${missing.join(", ")}`);
   }
 };
 

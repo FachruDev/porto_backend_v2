@@ -1,8 +1,9 @@
 import type { Locale } from "@prisma/client";
 import type { Request, Response } from "express";
 import prisma from "../../config/prisma";
-import { normalizeTranslations } from "./helpers";
 import { uploadObject } from "../../config/storage";
+import { HttpError } from "../../lib/httpError";
+import { normalizeTranslations } from "./helpers";
 
 export const getAbout = async (_req: Request, res: Response) => {
   const about = await prisma.aboutMe.findFirst({
@@ -61,4 +62,35 @@ export const upsertAbout = async (req: Request, res: Response) => {
       });
 
   res.json(data);
+};
+
+export const uploadAboutProfile = async (req: Request, res: Response) => {
+  const file = (req as Request & { file?: Express.Multer.File }).file;
+  if (!file) {
+    throw new HttpError(400, "File is required");
+  }
+  if (!file.mimetype?.startsWith("image/")) {
+    throw new HttpError(400, "Only image uploads are allowed");
+  }
+
+  const uploaded = await uploadObject({
+    body: file.buffer,
+    contentType: file.mimetype,
+    key: `about/profile-${Date.now()}-${file.originalname}`,
+  });
+
+  const existing = await prisma.aboutMe.findFirst();
+
+  const about = existing
+    ? await prisma.aboutMe.update({
+        where: { id: existing.id },
+        data: { profile: uploaded.url },
+        include: { translations: true },
+      })
+    : await prisma.aboutMe.create({
+        data: { profile: uploaded.url },
+        include: { translations: true },
+      });
+
+  res.json({ url: uploaded.url, about });
 };
