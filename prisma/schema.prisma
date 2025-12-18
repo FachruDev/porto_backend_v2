@@ -186,6 +186,8 @@ model BlogPost {
   authorId        Int                      @map("author_id")
   slug            String                   @unique
   featuredImage   String?                  @map("featured_image")
+  metaTitle       String?                  @map("meta_title")
+  metaDescription String?                  @map("meta_description")
   status          PublishStatus            @default(DRAFT)
   publishedAt     DateTime?                @map("published_at")
   createdBy       String?                  @map("created_by")
@@ -281,8 +283,6 @@ model BlogPostTranslation {
   locale          Locale
   title           String
   content         String
-  metaTitle       String?   @map("meta_title")
-  metaDescription String?   @map("meta_description")
   createdAt       DateTime @default(now()) @map("created_at")
 
   @@unique([blogPostId, locale])

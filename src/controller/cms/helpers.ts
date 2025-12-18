@@ -45,6 +45,11 @@ export const computePublishedAt = (
   return null;
 };
 
+export const getEnTitle = (translations: Array<{ locale: string; title?: string }>) => {
+  const en = translations.find((t) => t.locale === "EN");
+  return en?.title ?? translations[0]?.title ?? "";
+};
+
 type TranslationDelegate = {
   deleteMany: (args: { where: Record<string, unknown> }) => Promise<unknown>;
   createMany: (args: { data: Record<string, unknown>[]; skipDuplicates?: boolean }) => Promise<unknown>;

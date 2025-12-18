@@ -2,7 +2,7 @@ import type { Locale } from "@prisma/client";
 import type { Request, Response } from "express";
 import prisma from "../../config/prisma";
 import { HttpError } from "../../lib/httpError";
-import { cleanSlug, normalizeTranslations, toId } from "./helpers";
+import { cleanSlug, getEnTitle, normalizeTranslations, toId } from "./helpers";
 import { ensureFile, replaceFile } from "../../lib/upload";
 
 export const listProjects = async (_req: Request, res: Response) => {
@@ -31,14 +31,13 @@ export const getProject = async (req: Request, res: Response) => {
 
 export const createProject = async (req: Request, res: Response) => {
   const payload = req.body as {
-    slug?: string;
     order?: number;
     images?: Array<{ url: string; alt?: string; order?: number }>;
     translations: Array<{ locale: Locale; title: string; subtitle?: string; description?: string }>;
   };
 
-  const enTitle = payload.translations.find((t) => t.locale === "EN")?.title ?? payload.translations[0]?.title;
-  const slug = cleanSlug(payload.slug, enTitle);
+  const enTitle = getEnTitle(payload.translations);
+  const slug = cleanSlug(undefined, enTitle);
 
   const project = await prisma.project.create({
     data: {
@@ -66,7 +65,6 @@ export const createProject = async (req: Request, res: Response) => {
 
 export const updateProject = async (req: Request, res: Response) => {
   const payload = req.body as {
-    slug?: string;
     order?: number;
     translations?: Array<{ locale: Locale; title: string; subtitle?: string; description?: string }>;
   };
@@ -74,7 +72,7 @@ export const updateProject = async (req: Request, res: Response) => {
   const enTitle = payload.translations?.find((t) => t.locale === "EN")?.title ?? payload.translations?.[0]?.title;
   const data = {
     sortOrder: payload.order,
-    slug: payload.slug || enTitle ? cleanSlug(payload.slug, enTitle) : undefined,
+    slug: payload.translations ? cleanSlug(undefined, enTitle) : undefined,
     translations: payload.translations
       ? {
           deleteMany: {},

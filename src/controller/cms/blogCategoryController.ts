@@ -20,7 +20,7 @@ export const createBlogCategory = async (req: Request, res: Response) => {
   const category = await prisma.blogCategory.create({
     data: {
       slug: cleanSlug(
-        payload.slug,
+        undefined,
         payload.translations.find((t) => t.locale === "EN")?.title ?? payload.translations[0]?.title,
       ),
       sortOrder: payload.order ?? 0,
@@ -42,7 +42,7 @@ export const updateBlogCategory = async (req: Request, res: Response) => {
   const category = await prisma.blogCategory.update({
     where: { id: toId(req.params.id) },
     data: {
-      slug: payload.slug || fallbackTitle ? cleanSlug(payload.slug, fallbackTitle) : undefined,
+      slug: payload.translations ? cleanSlug(undefined, fallbackTitle) : undefined,
       sortOrder: payload.order,
       translations: payload.translations
         ? {

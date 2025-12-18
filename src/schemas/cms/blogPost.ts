@@ -10,14 +10,14 @@ const slugSchema = z
 const blogPostTranslations = buildTranslations({
   title: z.string().min(1),
   content: z.string().min(1),
-  metaTitle: z.string().optional(),
-  metaDescription: z.string().optional(),
 });
 
 export const blogPostCreateSchema = z.object({
   blogCategoryId: z.coerce.number().int(),
   slug: slugSchema.optional(),
   featuredImage: z.string().optional(),
+  metaTitle: z.string().optional(),
+  metaDescription: z.string().optional(),
   status: z.nativeEnum(PublishStatus).default(PublishStatus.DRAFT),
   publishedAt: z.coerce.date().optional(),
   createdBy: z.string().optional(),

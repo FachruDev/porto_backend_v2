@@ -71,14 +71,14 @@ export const createBlogPost = async (req: Request, res: Response) => {
     blogCategoryId: number;
     slug?: string;
     featuredImage?: string;
+    metaTitle?: string;
+    metaDescription?: string;
     status?: PublishStatus;
     publishedAt?: Date;
     translations: Array<{
       locale: Locale;
       title: string;
       content: string;
-      metaTitle?: string;
-      metaDescription?: string;
     }>;
   };
   const status = payload.status ?? PublishStatus.DRAFT;
@@ -88,8 +88,10 @@ export const createBlogPost = async (req: Request, res: Response) => {
     data: {
       blogCategoryId: payload.blogCategoryId,
       authorId: auth.userId,
-      slug: cleanSlug(payload.slug, enTitle),
+      slug: cleanSlug(undefined, enTitle),
       featuredImage: payload.featuredImage,
+      metaTitle: payload.metaTitle,
+      metaDescription: payload.metaDescription,
       status,
       publishedAt: computePublishedAt(status, payload.publishedAt),
       createdBy: auth.email ?? auth.name ?? `user-${auth.userId}`,
@@ -130,14 +132,14 @@ export const updateBlogPost = async (req: Request, res: Response) => {
     blogCategoryId?: number;
     slug?: string;
     featuredImage?: string;
+    metaTitle?: string;
+    metaDescription?: string;
     status?: PublishStatus;
     publishedAt?: Date;
     translations?: Array<{
       locale: Locale;
       title: string;
       content: string;
-      metaTitle?: string;
-      metaDescription?: string;
     }>;
   };
   const status = payload.status ?? existing.status;
@@ -149,8 +151,10 @@ export const updateBlogPost = async (req: Request, res: Response) => {
     data: {
       blogCategoryId: payload.blogCategoryId,
       authorId: existing.authorId ?? auth.userId,
-      slug: payload.slug || enTitle ? cleanSlug(payload.slug, enTitle) : undefined,
+      slug: payload.translations ? cleanSlug(undefined, enTitle) : undefined,
       featuredImage: payload.featuredImage,
+      metaTitle: payload.metaTitle,
+      metaDescription: payload.metaDescription,
       status,
       publishedAt,
       createdBy: existing.createdBy ?? auth.email ?? auth.name ?? `user-${auth.userId}`,
