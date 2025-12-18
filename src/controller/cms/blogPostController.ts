@@ -6,6 +6,16 @@ import { HttpError } from "../../lib/httpError";
 import { cleanSlug, computePublishedAt, normalizeTranslations, toId } from "./helpers";
 import { ensureFile, replaceFile, uploadMulterFile } from "../../lib/upload";
 
+type AuthPayload = { userId: number; email?: string; name?: string };
+
+const getAuth = (req: Request): AuthPayload => {
+  const user = (req as Request & { user?: AuthPayload }).user;
+  if (!user?.userId) {
+    throw new HttpError(401, "Unauthorized");
+  }
+  return user;
+};
+
 export const listBlogPosts = async (_req: Request, res: Response) => {
   const posts = await prisma.blogPost.findMany({
     orderBy: [{ createdAt: "desc" }],
@@ -56,14 +66,13 @@ export const getBlogPost = async (req: Request, res: Response) => {
 };
 
 export const createBlogPost = async (req: Request, res: Response) => {
+  const auth = getAuth(req);
   const payload = req.body as {
     blogCategoryId: number;
-    authorId: number;
     slug?: string;
     featuredImage?: string;
     status?: PublishStatus;
     publishedAt?: Date;
-    createdBy?: string;
     translations: Array<{
       locale: Locale;
       title: string;
@@ -78,12 +87,12 @@ export const createBlogPost = async (req: Request, res: Response) => {
   const post = await prisma.blogPost.create({
     data: {
       blogCategoryId: payload.blogCategoryId,
-      authorId: payload.authorId,
+      authorId: auth.userId,
       slug: cleanSlug(payload.slug, enTitle),
       featuredImage: payload.featuredImage,
       status,
       publishedAt: computePublishedAt(status, payload.publishedAt),
-      createdBy: payload.createdBy,
+      createdBy: auth.email ?? auth.name ?? `user-${auth.userId}`,
       translations: {
         create: normalizeTranslations(payload.translations),
       },
@@ -109,6 +118,7 @@ export const createBlogPost = async (req: Request, res: Response) => {
 };
 
 export const updateBlogPost = async (req: Request, res: Response) => {
+  const auth = getAuth(req);
   const id = toId(req.params.id);
   const existing = await prisma.blogPost.findUnique({ where: { id } });
 
@@ -118,12 +128,10 @@ export const updateBlogPost = async (req: Request, res: Response) => {
 
   const payload = req.body as {
     blogCategoryId?: number;
-    authorId?: number;
     slug?: string;
     featuredImage?: string;
     status?: PublishStatus;
     publishedAt?: Date;
-    createdBy?: string;
     translations?: Array<{
       locale: Locale;
       title: string;
@@ -140,12 +148,12 @@ export const updateBlogPost = async (req: Request, res: Response) => {
     where: { id },
     data: {
       blogCategoryId: payload.blogCategoryId,
-      authorId: payload.authorId,
+      authorId: existing.authorId ?? auth.userId,
       slug: payload.slug || enTitle ? cleanSlug(payload.slug, enTitle) : undefined,
       featuredImage: payload.featuredImage,
       status,
       publishedAt,
-      createdBy: payload.createdBy,
+      createdBy: existing.createdBy ?? auth.email ?? auth.name ?? `user-${auth.userId}`,
       translations: payload.translations
         ? {
             deleteMany: {},

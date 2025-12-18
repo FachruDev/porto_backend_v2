@@ -16,7 +16,6 @@ const blogPostTranslations = buildTranslations({
 
 export const blogPostCreateSchema = z.object({
   blogCategoryId: z.coerce.number().int(),
-  authorId: z.coerce.number().int(),
   slug: slugSchema.optional(),
   featuredImage: z.string().optional(),
   status: z.nativeEnum(PublishStatus).default(PublishStatus.DRAFT),
