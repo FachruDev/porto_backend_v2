@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import prisma from "../config/prisma";
 import { HttpError } from "../lib/httpError";
 import { hashPassword } from "../lib/password";
+import { ensureFile, IMAGE_MIME_REGEX, replaceFile } from "../lib/upload";
 import { toId } from "./cms/helpers";
 
 type AuthPayload = { userId: number; email?: string };
@@ -135,6 +136,54 @@ export const updateMe = async (req: Request, res: Response) => {
       bio: payload.bio,
       profile: payload.profile,
     },
+  });
+
+  res.json(serializeUser(user));
+};
+
+export const uploadMyProfile = async (req: Request, res: Response) => {
+  const auth = getAuth(req);
+  const file = (req as Request & { file?: Express.Multer.File }).file;
+  ensureFile(file, { allowMime: IMAGE_MIME_REGEX, field: "profile" });
+
+  const existing = await prisma.user.findUnique({ where: { id: auth.userId } });
+  if (!existing) {
+    throw new HttpError(404, "User not found");
+  }
+
+  const url = await replaceFile({
+    file: file!,
+    keyPrefix: "users/profile",
+    oldUrl: existing.profile as string | undefined,
+  });
+
+  const user = await prisma.user.update({
+    where: { id: auth.userId },
+    data: { profile: url },
+  });
+
+  res.json(serializeUser(user));
+};
+
+export const uploadUserProfile = async (req: Request, res: Response) => {
+  const file = (req as Request & { file?: Express.Multer.File }).file;
+  ensureFile(file, { allowMime: IMAGE_MIME_REGEX, field: "profile" });
+  const userId = toId(req.params.id);
+
+  const existing = await prisma.user.findUnique({ where: { id: userId } });
+  if (!existing) {
+    throw new HttpError(404, "User not found");
+  }
+
+  const url = await replaceFile({
+    file: file!,
+    keyPrefix: "users/profile",
+    oldUrl: existing.profile as string | undefined,
+  });
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { profile: url },
   });
 
   res.json(serializeUser(user));
