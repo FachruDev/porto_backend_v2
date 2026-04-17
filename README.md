@@ -43,6 +43,12 @@ bun run dev            # start API on http://localhost:4000
 - `/cms/blog/categories` - CRUD blog categories with translations.
 - `/cms/blog/posts` - CRUD blog posts with translations (status, SEO fields, published date handling) linked to `users` as authors.
 
+## API documentation for frontend
+
+Detailed endpoint docs (request/response examples, validations, auth rules, upload fields):
+
+- `docs/API_DOCUMENTATION.md`
+
 ## Project layout
 
 - `src/index.ts` - server bootstrap.
